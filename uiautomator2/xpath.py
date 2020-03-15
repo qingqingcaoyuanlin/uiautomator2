@@ -215,8 +215,8 @@ class XPath(object):
         if text:
             self._d.send_keys(text)
 
-    def take_screenshot(self) -> Image.Image:
-        return self._d.screenshot()
+    def take_screenshot(self, format='pillow'):
+        return self._d.screenshot(format=format)
 
     def match(self, xpath, source=None):
         return len(self(xpath, source).all()) > 0
@@ -553,10 +553,10 @@ class XPathSelector(object):
         """ find element and perform long click """
         self.get().long_click()
 
-    def screenshot(self) -> Image.Image:
+    def screenshot(self, filename=None, format='pillow'):
         """ take element screenshot """
         el = self.get()
-        return el.screenshot()
+        return el.screenshot(filename=filename, format=format)
     
     def __getattr__(self, key: str):
         el = self.get()
@@ -609,12 +609,30 @@ class XMLElement(object):
         x, y = self.center()
         self._parent.send_longclick(x, y)
 
-    def screenshot(self):
+    def screenshot(self, filename=None, format='pillow'):        
         """
         Take screenshot of element
         """
-        im = self._parent.take_screenshot()
-        return im.crop(self.bounds)
+               
+        img = self._parent.take_screenshot(format=format)
+        bounds = self.bounds
+        if format == 'pillow':
+            if filename:                
+                img.crop(bounds).save(filename)
+                return filename
+            else:
+                return img.crop(bounds)
+        elif format == 'opencv':
+            data = img[bounds[1]:bounds[3],bounds[0]:bounds[2]]
+            if filename:
+                from cv2 import imwrite
+                imwrite(filename, data)                               
+                return filename
+            else:
+                return data           
+        
+        else:
+            raise RuntimeError("Invalid control screenshot format " + format)
 
     def swipe(self, direction: str, scale: float = 0.5):
         """

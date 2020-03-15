@@ -1048,7 +1048,29 @@ class UiObject(object):
     def clear_text(self, timeout=None):
         self.must_wait(timeout=timeout)
         return self.set_text(None)
-
+    
+    def screenshot(self, filename=None, format='pillow'):
+        img = self.session.screenshot(format=format)
+        bounds = self.bounds()
+        if format == 'pillow':
+            data = img.crop(bounds)
+            if filename:
+                data.save(filename)
+                return filename
+            else:
+                return data
+        elif format == 'opencv':
+            data = img[bounds[1]:bounds[3],bounds[0]:bounds[2]]
+            if filename:
+                import cv2
+                cv2.imwrite(filename, data)
+                return filename
+            else:
+                return data
+        else:
+            raise RuntimeError("Invalid control screenshot format " + format)
+    
+    
     def child(self, **kwargs):
         return UiObject(self.session, self.selector.clone().child(**kwargs))
 
