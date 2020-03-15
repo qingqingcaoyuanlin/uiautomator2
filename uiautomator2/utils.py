@@ -1,12 +1,14 @@
 # coding: utf-8
 #
 
-import six
 import functools
+import shlex
+import inspect
+from typing import Union
 
-from uiautomator2.exceptions import (
-    SessionBrokenError,
-    UiObjectNotFoundError)
+import six
+import uiautomator2
+from uiautomator2.exceptions import SessionBrokenError, UiObjectNotFoundError
 
 
 def U(x):
@@ -18,7 +20,7 @@ def U(x):
 def E(x):
     if six.PY3:
         return x
-    return x.encode('utf-8') if type(x) is unicode else x
+    return x.encode('utf-8') if type(x) is unicode else x # noqa: F821
 
 
 def check_alive(fn):
@@ -107,3 +109,31 @@ class Exists(object):
 
     def __repr__(self):
         return str(bool(self))
+
+
+def list2cmdline(args: Union[list, tuple]):
+    return ' '.join(list(map(shlex.quote, args)))
+
+
+def inject_call(fn, *args, **kwargs):
+    """
+    Call function without known all the arguments
+
+    Args:
+        fn: function
+        args: arguments
+        kwargs: key-values
+    
+    Returns:
+        as the fn returns
+    """
+    assert callable(fn), "first argument must be callable"
+
+    st = inspect.signature(fn)
+    fn_kwargs = {
+        key: kwargs[key]
+        for key in st.parameters.keys() if key in kwargs
+    }
+    ba = st.bind(*args, **fn_kwargs)
+    ba.apply_defaults()
+    return fn(*ba.args, **ba.kwargs)

@@ -4,28 +4,34 @@
 # class ATXError(Exception):
 #     pass
 
+import json
+
 
 class BaseError(Exception):
     pass
 
 
-class UiaError(BaseError):
+class RetryError(BaseError):
+    """ retry when meet this error """
+
+
+class SessionBrokenError(BaseError):
+    """ only happens when app quit or crash """
+
+
+class UiautomatorQuitError(BaseError):
     pass
 
 
-class UiautomatorQuitError(UiaError):
+class ConnectError(BaseError):
     pass
 
 
-class ConnectError(UiaError):
+class XPathElementNotFoundError(BaseError):
     pass
 
 
-class XPathElementNotFoundError(UiaError):
-    pass
-
-
-class GatewayError(UiaError):
+class GatewayError(BaseError):
     def __init__(self, response, description):
         self.response = response
         self.description = description
@@ -34,7 +40,7 @@ class GatewayError(UiaError):
         return "uiautomator2.GatewayError(" + self.description + ")"
 
 
-class JsonRpcError(UiaError):
+class JsonRpcError(BaseError):
     @staticmethod
     def format_errcode(errcode):
         m = {
@@ -52,11 +58,15 @@ class JsonRpcError(UiaError):
             return 'Server error'
         return 'Unknown error'
 
-    def __init__(self, error={}, method=None):
+    def __init__(self, error: dict = {}, method=None):
         self.code = error.get('code')
         self.message = error.get('message', '')
         self.data = error.get('data', '')
         self.method = method
+        if isinstance(self.data, dict):
+            self.exception_name = self.data.get("exceptionTypeName")
+        else:
+            self.exception_name = None
 
     def __str__(self):
         return '%d %s: <%s> data: %s, method: %s' % (
@@ -67,25 +77,30 @@ class JsonRpcError(UiaError):
         return repr(str(self))
 
 
-class SessionBrokenError(UiaError):
-    """ only happens when app quit or crash """
-
-
 class UiObjectNotFoundError(JsonRpcError):
-    pass
+    """ 控件没找到 """
 
 
 class UiAutomationNotConnectedError(JsonRpcError):
-    pass
+    """ 与手机上运行的UiAutomator服务连接断开 """
 
 
 class NullObjectExceptionError(JsonRpcError):
-    pass
+    """ 空对象错误 """
 
 
 class NullPointerExceptionError(JsonRpcError):
-    pass
+    """ 空指针错误 """
 
 
 class StaleObjectExceptionError(JsonRpcError):
-    pass
+    """ 一种，打算要操作的对象突然消失的错误 """
+
+
+class InjectPermissionError(JsonRpcError):
+    """ 开发者选项中: 模拟点击没有打开 """
+
+
+# 保证兼容性
+UiaError = BaseError
+

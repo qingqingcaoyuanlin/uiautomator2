@@ -11,5 +11,12 @@ def d():
 
 @pytest.fixture(scope="function")
 def sess(d) -> u2.Session:
-    with d.session("io.appium.android.apis") as s:
-        yield s
+    d.watcher.reset()
+    
+    s = d.session("io.appium.android.apis")
+    yield s
+
+
+@pytest.fixture
+def package_name():
+    return "io.appium.android.apis"

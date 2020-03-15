@@ -39,7 +39,11 @@ install:
 script:
   - echo "Skip test"
 notifications:
-  webhooks: https://oapi.dingtalk.com/robot/send?access_token=1334bdf5a1e41f260226ac54f2756f3cdf8480c4c09d9594f9d9fc5233c8e9bc
+  webhooks:
+    urls:
+      - https://oapi.dingtalk.com/robot/send?access_token=5e8d4207463024dd88089f37f0ee37ceb75bd30f3c2aee270f680298861021c0
+    # Conditions doc: https://docs.travis-ci.com/user/conditions-v1
+    #if: tag IS present
 deploy:
   skip_cleanup: true
   skip_existing: true
