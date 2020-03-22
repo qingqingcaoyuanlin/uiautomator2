@@ -20,6 +20,7 @@ from uiautomator2.exceptions import (RetryError, NullPointerExceptionError,
                                      UiautomatorQuitError)
 from uiautomator2.utils import Exists, U, check_alive, hooks_wrap, intersect, cache_return
 from uiautomator2.swipe import SwipeExt
+from uiautomator2.ext.aircv import CVHandler
 
 _INPUT_METHOD_RE = re.compile(r'mCurMethodId=([-_./\w]+)')
 _fail_prompt_enabled = False
@@ -1069,6 +1070,24 @@ class UiObject(object):
                 return data
         else:
             raise RuntimeError("Invalid control screenshot format " + format)
+    
+    def same_with(self, pic, threshold=None):
+        '''
+        控件与截图对比
+        :param pic: 截图文件
+        :param threshold: 阈值
+        :return: bool
+        '''
+        import cv2
+        pic_data = cv2.imread(pic)        
+        snap = self.screenshot(format='opencv')
+        
+        handler = CVHandler()
+        if not threshold:
+            handler.template_threshold = threshold
+        return True if handler.find_template(snap, pic_data) else False
+        
+        
     
     
     def child(self, **kwargs):
