@@ -563,6 +563,16 @@ class Session(object):
         else:
             raise RuntimeError("Invalid format " + format)
 
+    def pixel_RGB(self, x, y):
+        '''
+        get RGB of pixel(https://c.runoob.com/front-end/870)
+        :param x:
+        :param y:
+        :return: (R,G,B)
+        '''
+        snap = self.screenshot(format='pillow')
+        return snap.load()[x, y]
+
     @retry(RetryError, delay=1.0, tries=2)
     def dump_hierarchy(self, compressed=False, pretty=False) -> str:
         """
@@ -1094,7 +1104,17 @@ class UiObject(object):
             print(pic,' not found')
             return False
         
-        
+    def center_RGB(self):
+        '''
+        get the center pixel  RGB of control
+        usage:d(xxxx).center_RGB()
+        :return: (R,G,B)
+        '''
+        snap = self.screenshot(format='pillow')
+        bounds = self.bounds()
+        #print(bounds)
+        x, y = (bounds[2]-bounds[0])/2, (bounds[3]-bounds[1])/2
+        return snap.load()[x, y]
     
     
     def child(self, **kwargs):

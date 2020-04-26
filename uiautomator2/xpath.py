@@ -25,6 +25,7 @@ import uiautomator2
 from uiautomator2.exceptions import XPathElementNotFoundError
 from uiautomator2.utils import U, inject_call
 from uiautomator2.abcd import BasicUIMeta
+from uiautomator2.ext.aircv import CVHandler
 
 try:
     from lxml import etree
@@ -557,7 +558,42 @@ class XPathSelector(object):
         """ take element screenshot """
         el = self.get()
         return el.screenshot(filename=filename, format=format)
-    
+
+    def same_with(self, pic, threshold=None):
+        '''
+        控件与截图对比
+        :param pic: 截图文件
+        :param threshold: 阈值
+        :return: bool
+        '''
+        import cv2
+        pic_data = cv2.imread(pic)
+        snap = self.screenshot(format='opencv')
+
+        handler = CVHandler()
+        if threshold:
+            handler.template_threshold = threshold
+
+        if handler.find_template(snap, pic_data) != None:
+            print('found ', pic)
+            return True
+        else:
+            print(pic,' not found')
+            return False
+
+    def center_RGB(self):
+        '''
+        get the center pixel  RGB of control
+        usage:d.xpath(xxxx).center_RGB()
+        :return: (R,G,B)
+        '''
+        snap = self.screenshot(format='pillow')
+        bounds = self.bounds
+        #print(bounds)
+        x, y = (bounds[2]-bounds[0])/2, (bounds[3]-bounds[1])/2
+        return snap.load()[x, y]
+
+
     def __getattr__(self, key: str):
         el = self.get()
         return getattr(el, key)
