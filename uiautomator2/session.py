@@ -555,7 +555,8 @@ class Session(object):
         elif format == 'opencv':
             import cv2
             import numpy as np
-            nparr = np.fromstring(r.content, np.uint8)
+            #nparr = np.fromstring(r.content, np.uint8)
+            nparr = np.frombuffer(r.content, np.uint8)
             return cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         elif format == 'raw':
             return r.content
