@@ -1086,7 +1086,13 @@ class UiObject(object):
         handler = CVHandler()
         if not threshold:
             handler.template_threshold = threshold
-        return True if handler.find_template(snap, pic_data) else False
+
+        if handler.find_template(snap, pic_data) != None:
+            print('found ', pic)
+            return True
+        else:
+            print(pic,' not found')
+            return False
         
         
     
