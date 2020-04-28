@@ -111,6 +111,8 @@ Thank you to all our sponsors! ✨🍰✨
   - **[Input method](#input-method)**
   - **[Toast](#toast)**
   - **[XPath](#xpath)**
+  - **[Screenrecord](#screenrecord)**
+  - **[Image match](#image-match)**
 
 **[相关文章推荐](#article-recommended)**
 
@@ -1352,6 +1354,51 @@ for elem in d.xpath("//android.widget.TextView").all():
 ```
 
 点击查看[其他XPath常见用法](XPATH.md)
+
+### Screenrecord
+视频录制
+
+这里没有使用手机中自带的screenrecord命令，是通过获取手机图片合成视频的方法，所以需要安装一些其他的依赖，如imageio, imageio-ffmpeg, numpy等
+因为有些依赖比较大，推荐使用镜像安装。直接运行下面的命令即可。
+
+```bash
+pip3 install -U "uiautomator2[image]" -i https://pypi.doubanio.com/simple
+```
+
+使用方法
+
+```
+d.screenrecord('output.mp4')
+
+time.sleep(10)
+# or do something else
+
+d.screenrecord.stop() # 停止录制后，output.mp4文件才能打开
+```
+
+录制的时候也可以指定fps（当前是20），这个值是率低于minicap输出图片的速度，感觉已经很好了，不建议你修改。
+
+### Image match
+图像匹配，在使用这个功能之前你需要先把依赖安装上
+
+```bash
+pip3 install -U "uiautomator2[image]" -i https://pypi.doubanio.com/simple
+```
+
+目前开放两个接口
+ 
+```
+imdata = "target.png" # 也可以是URL, PIL.Image或OpenCV打开的图像
+
+d.image.match(imdata) 
+# 匹配待查找的图片，立刻返回一个结果
+# 返回一个dict, eg: {"similarity": 0.9, "point": [200, 300]}
+
+d.image.click(imdata, timeout=20.0)
+# 在20s的时间内调用match轮询查找图片，当similarity>0.9时，执行点击操作
+```
+
+该功能还在完善中，图片需要手机的原图裁剪后的图才可以。
 
 # 常见问题
 很多没写在这个地方的，都放到了这里 [Common Issues](https://github.com/openatx/uiautomator2/wiki/Common-issues)

@@ -8,6 +8,7 @@ import os
 import shutil
 import tarfile
 
+import adbutils
 import humanize
 import progress.bar
 import requests
@@ -36,15 +37,21 @@ class DownloadBar(progress.bar.PixelBar):
         return humanize.naturalsize(self.index, gnu=True)
 
 
-def cache_download(url, filename=None, timeout=None, logger=logger):
-    """ return downloaded filepath """
-    # check cache
-    if not filename:
-        filename = os.path.basename(url)
+def gen_cachepath(url: str) -> str:
+    filename = os.path.basename(url)
     storepath = os.path.join(
         appdir, "cache",
         filename.replace(" ", "_") + "-" +
         hashlib.sha224(url.encode()).hexdigest()[:10], filename)
+    return storepath
+
+def cache_download(url, filename=None, timeout=None, storepath=None, logger=logger):
+    """ return downloaded filepath """
+    # check cache
+    if not filename:
+        filename = os.path.basename(url)
+    if not storepath:
+        storepath = gen_cachepath(url)
     storedir = os.path.dirname(storepath)
     if not os.path.isdir(storedir):
         os.makedirs(storedir)
@@ -86,6 +93,7 @@ def mirror_download(url: str, filename=None, logger: logging.Logger = logger):
     """
     Download from mirror, then fallback to origin url
     """
+    storepath = gen_cachepath(url)
     if not filename:
         filename = os.path.basename(url)
     github_host = "https://github.com"
@@ -96,12 +104,13 @@ def mirror_download(url: str, filename=None, logger: logging.Logger = logger):
             return cache_download(mirror_url,
                                   filename,
                                   timeout=60,
+                                  storepath=storepath,
                                   logger=logger)
         except (requests.RequestException, FileNotFoundError,
                 AssertionError) as e:
             logger.debug("download error from mirror(%s), use origin source", e)
 
-    return cache_download(url, filename, logger=logger)
+    return cache_download(url, filename, storepath=storepath, logger=logger)
 
 
 def app_uiautomator_apk_urls():
@@ -131,7 +140,7 @@ def parse_apk(path: str):
     }
 
 class Initer():
-    def __init__(self, device, loglevel=logging.INFO):
+    def __init__(self, device: adbutils.AdbDevice, loglevel=logging.INFO):
         d = self._device = device
 
         self.sdk = d.getprop('ro.build.version.sdk')
@@ -149,9 +158,9 @@ class Initer():
     def atx_agent_path(self):
         return "/data/local/tmp/atx-agent"
 
-    def shell(self, *args):
+    def shell(self, *args, timeout=60):
         self.logger.debug("Shell: %s", args)
-        return self._device.shell(args)
+        return self._device.shell(args, timeout=60)
 
     @property
     def jar_urls(self):
