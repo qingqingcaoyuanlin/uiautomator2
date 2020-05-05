@@ -673,6 +673,7 @@ class XMLElement(object):
                 return filename
             else:
                 return img.crop(bounds)
+			
         elif format == 'opencv':
             data = img[bounds[1]:bounds[3],bounds[0]:bounds[2]]
             if filename:
@@ -681,7 +682,20 @@ class XMLElement(object):
                 return filename
             else:
                 return data           
-        
+        	
+        elif format == 'raw':
+            import numpy
+            import cv2
+            
+            array = numpy.frombuffer(img, dtype=numpy.uint8)
+            img_np = cv2.imdecode(array, cv2.IMREAD_COLOR)
+            data = img_np[bounds[1]:bounds[3],bounds[0]:bounds[2]]
+            image = cv2.imencode('.jpg', data)[1]
+            if filename:
+                cv2.imwrite(filename, image)
+            else:            
+                return image.tobytes()            
+            
         else:
             raise RuntimeError("Invalid control screenshot format " + format)
 
