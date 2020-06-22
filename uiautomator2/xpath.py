@@ -665,17 +665,17 @@ class XMLElement(object):
         Take screenshot of element
         """
                
-        img = self._parent.take_screenshot(format=format)
+        im = self._parent.take_screenshot(format=format)
         bounds = self.bounds
         if format == 'pillow':
             if filename:                
-                img.crop(bounds).save(filename)
+                im.crop(bounds).save(filename)
                 return filename
             else:
-                return img.crop(bounds)
+                return im.crop(bounds)
 			
         elif format == 'opencv':
-            data = img[bounds[1]:bounds[3],bounds[0]:bounds[2]]
+            data = im[bounds[1]:bounds[3],bounds[0]:bounds[2]]
             if filename:
                 from cv2 import imwrite
                 imwrite(filename, data)                               
@@ -687,7 +687,7 @@ class XMLElement(object):
             import numpy
             import cv2
             
-            array = numpy.frombuffer(img, dtype=numpy.uint8)
+            array = numpy.frombuffer(im, dtype=numpy.uint8)
             img_np = cv2.imdecode(array, cv2.IMREAD_COLOR)
             data = img_np[bounds[1]:bounds[3],bounds[0]:bounds[2]]
             image = cv2.imencode('.jpg', data)[1]

@@ -128,9 +128,44 @@ class UiObject(object):
         '''ui object info.'''
         return self.jsonrpc.objInfo(self.selector)
     
-    def screenshot(self) -> Image.Image:
-        im = self.session.screenshot()
-        return im.crop(self.bounds())
+    def screenshot(self, filename=None, format='pillow'):
+        """
+        Take screenshot of element
+        """
+
+        im = self.session.screenshot(format=format)
+        bounds = self.bounds()
+        if format == 'pillow':
+            data = im.crop(bounds)
+            if filename:
+                data.save(filename)
+                return filename
+            else:
+                return data
+        elif format == 'opencv':
+            data = im[bounds[1]:bounds[3], bounds[0]:bounds[2]]
+            if filename:
+                import cv2
+                cv2.imwrite(filename, data)
+                return filename
+            else:
+                return data
+				
+		elif format == 'raw':
+            import numpy
+            import cv2
+            
+            array = numpy.frombuffer(img, dtype=numpy.uint8)
+            img_np = cv2.imdecode(array, cv2.IMREAD_COLOR)
+            data = img_np[bounds[1]:bounds[3],bounds[0]:bounds[2]]
+            image = cv2.imencode('.jpg', data)[1]
+            if filename:
+                cv2.imwrite(filename, image)
+            else:            
+                return image.tobytes()
+				
+        else:
+            raise RuntimeError("Invalid control screenshot format " + format)
 
     def click(self, timeout=None, offset=None):
         """

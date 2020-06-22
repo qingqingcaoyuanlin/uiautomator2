@@ -31,6 +31,8 @@ import threading
 import time
 import warnings
 import xml.dom.minidom
+from xml.dom.minidom import parseString
+import random
 from collections import namedtuple
 from datetime import datetime
 from typing import List, Optional, Tuple, Union
@@ -1003,6 +1005,31 @@ class _Device(_BaseClient):
         with self._operation_delay("click"):
             return self.touch.down(x, y).sleep(duration).up(x, y)
 
+    def random_click(self):
+        '''
+        随机点击
+        '''
+
+        touch_list = []
+        xml_content = self.dump_hierarchy()
+        doc = xml.dom.minidom.parseString(xml_content)
+
+        def bounds2pos(bounds):
+            nums = re.compile(r'\d+')
+            str_list = nums.findall(bounds)
+            num_list = []
+            for i in str_list:
+                num_list.append(int(i))
+            return ((num_list[0] + num_list[2]) / 2, (num_list[1] + num_list[3]) / 2)
+
+        for node in doc.getElementsByTagName('hierarchy'):
+            for nextnode in node.getElementsByTagName('node'):
+                bounds = nextnode.getAttribute('bounds')
+                touch_list.append(bounds2pos(bounds))
+
+        x,y = random.choice(touch_list)
+        self.click(x, y)
+
     def swipe(self, fx, fy, tx, ty, duration=0.1, steps=None):
         """
         Args:
@@ -1064,6 +1091,12 @@ class _Device(_BaseClient):
                     key, meta) if meta else self.server.jsonrpc.pressKeyCode(key)
             else:
                 return self.jsonrpc.pressKey(key)
+
+    def pressKeys(self, keys, duration=0.5):
+        for key in keys:
+            self.press(key, meta=None)
+            time.sleep(duration)
+
 
     def screen_on(self):
         self.jsonrpc.wakeUp()
