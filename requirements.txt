@@ -1,6 +1,5 @@
 six
 requests
-humanize
 whichcraft 
 
 logzero~=1.5
@@ -12,4 +11,5 @@ Deprecated~=1.2.6
 # Not supported in QPython
 Pillow
 lxml>=4.3
-opencv-python#如果异常请安装版本4.2.0.32，请参考：https://www.jianshu.com/p/1bf1a9b8fbec
+cached-property>=1.5.1,<2.0
+packaging~=20.3
